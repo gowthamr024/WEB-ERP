@@ -1,0 +1,452 @@
+﻿@* ========================================================================== *@
+@* Area = Admin, Controller = Menu, Action/View = PermissionManagement.cshtml *@
+@* ========================================================================== *@
+
+@model ERP.Web.Areas.Admin.Models.AssignPermissionViewModel
+
+@{
+    ViewData["Title"] = "Assign Permissions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/admin-menu.css" />
+
+<div class="menu-topbar">
+    <label for="txtUserSearch">Username:</label>
+    <input type="text" class="custom-input InputSearchbox" id="txtUserSearch" placeholder="Type username or email..." autocomplete="off" />
+    <div id="userDropdown" class="dropdown-list" style="display:none;"></div>
+    <button id="btnLoadPermissions" class="custom-btn">Load Permissions</button>
+</div>
+
+<div class="menu-container split-layout">
+    <!-- 1️⃣ Modules -->
+    <div class="menu-left" id="moduleContainer">
+        <h3>Modules</h3>
+        <div id="moduleList">
+            @foreach (var module in Model.Modules)
+            {
+                <div class="module-option">
+                    <input type="checkbox" class="module-checkbox" data-id="@module.ModuleID" id="module_@module.ModuleID" />
+                    <label for="module_@module.ModuleID">@module.ModuleName</label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- 2️⃣ Screens -->
+    <div class="menu-left" id="screenContainer">
+        <h3>Screens</h3>
+        <div id="screenList">
+            <em>Select a module to load screens</em>
+        </div>
+    </div>
+
+    <!-- 3️⃣ Permissions -->
+    <div class="menu-right" id="permissionContainer">
+        <h3>Permissions</h3>
+        <div id="permissionList">
+            <em>Select a screen to view permissions</em>
+        </div>
+        <div id="hiddenPermissionData" style="display:none;"></div>
+    </div>
+</div>
+
+<div class="form-actions">
+    <button id="btnSavePermissions" class="custom-btn success">Save Permissions</button>
+</div>
+
+@section Scripts {
+    <script>
+        $(function() {
+            let selectedUserId = 0;
+            let selectedScreenId = 0;
+
+            // ================= User Search =================
+            $('#txtUserSearch').on('input', function() {
+                let term = $(this).val().trim();
+                let $input = $(this);
+                let offset = $input.offset();
+                let height = $input.outerHeight();
+
+                if (term.length < 1) {
+                    $('#userDropdown').hide();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Admin/Menu/SearchUsers',
+                    type: 'GET',
+                    data: { term: term },
+                    success: function(users) {
+                        if (users.length === 0) {
+                            $('#userDropdown').html('<div class="no-result">No users found</div>').show();
+                            return;
+                        }
+
+                        let listHtml = users.map(u => `
+                            <div class="user-option" data-id="${u.id}" data-username="${u.text}">
+                                <span class="user-avatar">&#128100;</span> ${u.text}
+                            </div>`).join('');
+
+                        $('#userDropdown')
+                            .html(listHtml)
+                            .css({
+                                top: offset.top + height + 4,
+                                left: offset.left,
+                                width: $input.outerWidth()
+                            })
+                            .show();
+
+                        $('.user-option').off('click').on('click', function() {
+                            selectedUserId = $(this).data('id');
+                            // Use only the Username (before parentheses)
+                            let usernameOnly = $(this).data('username').split('(')[0].trim();
+                            $input.val(usernameOnly);
+                            $('#userDropdown').hide();
+                        });
+                    },
+                    error: function() {
+                        $('#userDropdown').hide();
+                    }
+                });
+            });
+
+            $(document).click(function(e) {
+                if (!$(e.target).closest('#txtUserSearch, #userDropdown').length) {
+                    $('#userDropdown').hide();
+                }
+            });
+
+            let selectedIndex = -1;
+            $('#txtUserSearch').keydown(function(e) {
+                let items = $('#userDropdown .user-option');
+                if (!items.length) return;
+
+                if(e.key === "ArrowDown") {
+                    selectedIndex = (selectedIndex + 1) % items.length;
+                    items.removeClass('highlight').eq(selectedIndex).addClass('highlight');
+                    e.preventDefault();
+                } else if(e.key === "ArrowUp") {
+                    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                    items.removeClass('highlight').eq(selectedIndex).addClass('highlight');
+                    e.preventDefault();
+                } else if(e.key === "Enter") {
+                    if(selectedIndex >= 0) {
+                        items.eq(selectedIndex).click();
+                        selectedIndex = -1;
+                    }
+                    e.preventDefault();
+                }
+            });
+
+            $('#btnLoadPermissions').click(function () {
+                if (!selectedUserId) {
+                    alert("Select a user first");
+                    return;
+                }
+
+                // Loading UX
+                $('#moduleList, #screenList, #permissionList').html('<div class="loading">Loading...</div>');
+
+                $.ajax({
+                    url: '/Admin/Menu/LoadUserPermissionsTree',
+                    type: 'GET',
+                    data: { userId: selectedUserId },
+                    success: function (data) {
+                        if (!data.success) {
+                            $('#moduleList').html('<div class="error">Invalid response</div>');
+                            return;
+                        }
+
+                        // === 1️⃣ Render modules ===
+                        let moduleHtml = data.Modules.map(m => `
+                            <div class="module-option" data-id="${m.ModuleID}">
+                                <strong>${m.ModuleName}</strong>
+                            </div>`).join('');
+                        $('#moduleList').html(moduleHtml);
+
+                        // === 2️⃣ When module clicked → render screens ===
+                        $('.module-option').off('click').on('click', function () {
+                            let moduleId = $(this).data('id');
+                            let module = data.Modules.find(x => x.ModuleID === moduleId);
+
+                            if (!module || !module.Children.length) {
+                                $('#screenList').html('<em>No screens found</em>');
+                                $('#permissionList').html('<em>Select a screen</em>');
+                                return;
+                            }
+
+                            let screenHtml = module.Children.map(s => `
+                                <div class="screen-option" data-id="${s.ScreenID}">
+                                    ${s.ScreenName}
+                                </div>`).join('');
+                            $('#screenList').html(screenHtml);
+                            $('#permissionList').html('<em>Select a screen to view permissions</em>');
+
+                            // === 3️⃣ When screen clicked → render permissions ===
+                            $('.screen-option').off('click').on('click', function () {
+                                let screenId = $(this).data('id');
+                                let screen = module.Children.find(x => x.ScreenID === screenId);
+
+                                if (!screen) return;
+
+                                let permHtml = `
+                                    <div class="perm-option"><input type="checkbox" data-perm="V" ${screen.CanView ? 'checked' : ''}> View</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="N" ${screen.CanAdd ? 'checked' : ''}> Add</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="E" ${screen.CanEdit ? 'checked' : ''}> Edit</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="D" ${screen.CanDelete ? 'checked' : ''}> Delete</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="P" ${screen.CanPrint ? 'checked' : ''}> Print</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="A" ${screen.CanApprove ? 'checked' : ''}> Approve</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="C" ${screen.CanCancel ? 'checked' : ''}> Cancel</div>
+                                    <div class="perm-option"><input type="checkbox" data-perm="R" ${screen.CanReject ? 'checked' : ''}> Reject</div>
+                                `;
+
+                                $('#permissionList').html(permHtml);
+
+                                // Store changes in memory (so Save can send back full updated tree)
+                                $('#permissionList input[type="checkbox"]').on('change', function () {
+                                    let permKey = $(this).data('perm');
+                                    screen[`Can${permKey === 'N' ? 'Add' :
+                                                 permKey === 'E' ? 'Edit' :
+                                                 permKey === 'D' ? 'Delete' :
+                                                 permKey === 'P' ? 'Print' :
+                                                 permKey === 'A' ? 'Approve' :
+                                                 permKey === 'C' ? 'Cancel' :
+                                                 permKey === 'R' ? 'Reject' : 'View'}`] = $(this).prop('checked');
+                                });
+                            });
+                        });
+                    },
+                    error: function () {
+                        $('#moduleList, #screenList, #permissionList').html('<div class="error">Error loading data</div>');
+                    }
+                });
+            });
+
+            // // === Save all (use updated in-memory data) ===
+            // $('#btnSavePermissions').click(function () {
+            //     if (!selectedUserId) { alert("Select a user first"); return; }
+
+            //     // Flatten modules → screens
+            //     let permissionsData = [];
+            //     $('.module-option').each(function () {
+            //         let moduleId = $(this).data('id');
+            //         let module = data.Modules.find(x => x.ModuleID === moduleId);
+            //         if (!module) return;
+
+            //         module.Children.forEach(s => {
+            //             if (s.CanView || s.CanAdd || s.CanEdit || s.CanDelete || s.CanPrint || s.CanApprove || s.CanCancel || s.CanReject) {
+            //                 // enforce view if any other is set
+            //                 s.CanView = true;
+            //             }
+            //             permissionsData.push(s);
+            //         });
+            //     });
+
+            //     $.ajax({
+            //         url: '/Admin/Menu/SaveUserPermissions',
+            //         type: 'POST',
+            //         contentType: 'application/json',
+            //         data: JSON.stringify({ UserId: selectedUserId, Permissions: permissionsData }),
+            //         success: function (res) { alert(res.success ? '✅ Permissions saved' : res.message); },
+            //         error: function () { alert('❌ Error saving permissions'); }
+            //     });
+            // });
+
+
+            // ================= Module Click =================
+            $(document).on('change', '.module-checkbox', function() {
+                let moduleId = $(this).data('id');
+                if (!selectedUserId) { alert("Select a user first"); $(this).prop('checked', false); return; }
+
+                $('#screenList').html('<div class="loading">Loading screens...</div>');
+                $('#permissionList').html('<em>Select a screen to view permissions</em>');
+
+                $.get('/Admin/Menu/GetScreensByModule', { userId: selectedUserId, moduleId: moduleId }, function(screens) {
+                    let screenHtml = screens.map(s => `
+                        <div class="screen-option">
+                            <input type="checkbox" class="screen-checkbox" data-id="${s.ScreenID}" id="screen_${s.ScreenID}" ${s.IsAssigned ? 'checked' : ''}>
+                            <label for="screen_${s.ScreenID}">${s.ScreenName}</label>
+                        </div>`).join('');
+                    $('#screenList').html(screenHtml);
+                });
+            });
+
+            // ================= Screen Click =================
+            $(document).on('change', '.screen-checkbox', function() {
+                selectedScreenId = $(this).data('id');
+                let isChecked = $(this).prop('checked');
+
+                $('#permissionList').html('<div class="loading">Loading permissions...</div>');
+
+                $.get('/Admin/Menu/GetPermissionsByScreen', { userId: selectedUserId, screenId: selectedScreenId }, function(perms) {
+                    let permHtml = Object.keys(perms).map(key => `
+                        <div class="perm-option">
+                            <input type="checkbox" data-perm="${key}" id="perm_${selectedScreenId}_${key}" ${perms[key] ? 'checked' : ''}>
+                            <label for="perm_${selectedScreenId}_${key}">${key}</label>
+                        </div>`).join('');
+
+                    // render in permissions panel (for current selection)
+                    $('#permissionList').html(`<div data-screenid="${selectedScreenId}">${permHtml}</div>`);
+
+                    // also keep hidden container for saving later
+                    let hiddenId = `#hiddenPerm_${selectedScreenId}`;
+                    if (!$(hiddenId).length) {
+                        $('#hiddenPermissionData').append(`<div id="hiddenPerm_${selectedScreenId}" data-screenid="${selectedScreenId}">${permHtml}</div>`);
+                    } else {
+                        $(hiddenId).html(permHtml);
+                    }
+
+                    if(isChecked) $(`#perm_${selectedScreenId}_V`).prop('checked', true);
+                });
+            });
+
+            // ================= Save Permissions =================
+            $('#btnSavePermissions').click(function() {
+                if(!selectedUserId) { alert("Select a user first"); return; }
+
+                let permissionsData = [];
+
+                $('#hiddenPermissionData > div').each(function() {
+                    let screenId = $(this).data('screenid');
+                    let perm = {
+                        ScreenID: screenId,
+                        CanView: $(this).find('input[data-perm="V"]').prop('checked'),
+                        CanAdd: $(this).find('input[data-perm="N"]').prop('checked'),
+                        CanEdit: $(this).find('input[data-perm="E"]').prop('checked'),
+                        CanDelete: $(this).find('input[data-perm="D"]').prop('checked'),
+                        CanPrint: $(this).find('input[data-perm="P"]').prop('checked'),
+                        CanApprove: $(this).find('input[data-perm="A"]').prop('checked'),
+                        CanCancel: $(this).find('input[data-perm="C"]').prop('checked'),
+                        CanReject: $(this).find('input[data-perm="R"]').prop('checked')
+                    };
+                    if(perm.CanView || perm.CanAdd || perm.CanEdit || perm.CanDelete || perm.CanPrint || perm.CanApprove || perm.CanCancel || perm.CanReject) {
+                        // enforce view checked if other perms selected
+                        perm.CanView = true;
+                    }
+                    permissionsData.push(perm);
+                });
+
+                $.ajax({
+                    url: '/Admin/Menu/SaveUserPermissions',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ UserId: selectedUserId, Permissions: permissionsData }),
+                    success: function(res){ alert(res.success ? '✅ Permissions saved' : res.message); },
+                    error: function(){ alert('❌ Error saving permissions'); }
+                });
+            });
+
+        });
+    </script>
+
+    <style>
+        .menu-container.split-layout {
+            display: flex;
+            gap: 10px;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .menu-left {
+            flex: 0 0 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border-right: 1px solid #ddd;
+            background: #fafafa;
+        }
+
+        .menu-right {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+        }
+
+        .module-option, .screen-option {
+            margin-bottom: 5px;
+        }
+
+        .dropdown-list {
+            position: absolute; /* must stay absolute */
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 5px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+            /* Individual user option */
+            .dropdown-list .user-option {
+                padding: 10px 15px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 14px;
+                color: #333;
+            }
+
+                /* Last item no border */
+                .dropdown-list .user-option:last-child {
+                    border-bottom: none;
+                }
+
+                /* Hover & selected highlight */
+                .dropdown-list .user-option:hover,
+                .dropdown-list .user-option.highlight {
+                    background-color: #f0f7ff;
+                    color: #007bff;
+                    font-weight: 500;
+                    border-left: 3px solid #007bff;
+                    padding-left: 12px;
+                }
+
+            /* No results styling */
+            .dropdown-list .no-result {
+                padding: 12px 15px;
+                color: #777;
+                font-style: italic;
+                text-align: center;
+            }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 50%;
+        }
+
+        #txtUserSearch {
+            text-align: left; /* always align text left */
+            padding-left: 10px; /* prevent text from hugging the border */
+        }
+
+        .loading {
+            padding: 15px;
+            text-align: center;
+            font-style: italic;
+            color: #555;
+        }
+
+        .error {
+            padding: 15px;
+            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+}

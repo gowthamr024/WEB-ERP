@@ -1,0 +1,315 @@
+﻿@* ================ *@
+@* ~/_Layout.cshtml *@
+@* ================ *@
+
+@using ERP.Infrastructure.Models.Entities
+@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="@Xsrf.GetAndStoreTokens(Context).RequestToken" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <script src="~/js/site.js" asp-append-version="true" defer> </script>
+
+</head>
+<body>
+    <header>
+        <div class="topbar">
+            @********************************* Topbar left Nav Icon + Module Name *************************************@
+            <div style="display:flex; gap:10px;">
+                <button class="toggle-btn" id="toggleSidebar">
+                    @* ☰ *@
+                    @*Toggle Leftbar In svg*@
+                    <svg id="toggle-open-icon" fill="#000000" width="30px" height="30px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <path d="M847.059 113c256.15 0 495.247 113.845 656.075 312.282l-87.868 71.153c-139.257-171.896-346.278-270.494-568.207-270.494-404.781 0-734.118 329.337-734.118 734.118 0 404.781 329.337 734.117 734.118 734.117 221.93 0 428.95-98.597 568.207-270.494l87.868 71.153c-160.828 198.438-399.925 312.283-656.075 312.283C379.934 1807.118 0 1427.184 0 960.058 0 492.935 379.934 113 847.059 113Zm129.476 411.817 79.849 79.963-298.955 298.842h1162.616v112.828H757.43l298.955 298.956-79.85 79.85-435.162-435.163 435.163-435.276Z" fill-rule="evenodd" />
+                    </svg>
+                    @*Toggle Leftbar Out svg*@
+                    <svg id="toggle-close-icon" style="display:none;" fill="#000000" width="30px" height="30px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1072.941 113C1540.066 113 1920 492.934 1920 960.059c0 467.125-379.934 847.059-847.059 847.059-256.15 0-495.247-113.845-656.075-312.283l87.868-71.153c139.257 171.897 346.278 270.494 568.207 270.494 404.781 0 734.118-329.336 734.118-734.117 0-404.781-329.337-734.118-734.118-734.118-221.93 0-428.95 98.598-568.207 270.494l-87.868-71.153C577.694 226.845 816.79 113 1072.94 113ZM943.443 524.885l435.162 435.163-435.162 435.162-79.85-79.737 298.956-298.955H.045V903.577H1162.55L863.593 604.735l79.85-79.85Z" fill-rule="evenodd" />
+                    </svg>
+                </button>
+
+                @****** Module Selection button *****@
+                <div style="border: 1px solid black; min-width: 15vw; min-height:30px; border-radius: 10px; position:relative;">
+                </div>
+
+            </div>
+
+            <div class="topbar-title">Title</div>
+
+            @*********************************** Topbar Right side options ********************************************@
+            <div class="topbar-right">
+                <button class="profile-btn" id="toggleSidebar-Task">
+                    <svg width="30px" height="30px" viewBox="0 -960 960 960" fill="#1f1f1f" xmlns="http://www.w3.org/2000/svg"><path d="m691-150 139-138-42-42-97 95-39-39-42 43 81 81ZM240-600h480v-80H240v80ZM720-40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40ZM120-80v-680q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v267q-19-9-39-15t-41-9v-243H200v562h243q5 31 15.5 59T486-86l-6 6-60-60-60 60-60-60-60 60-60-60-60 60Zm120-200h203q3-21 9-41t15-39H240v80Zm0-160h284q38-37 88.5-58.5T720-520H240v80Zm-40 242v-562 562Z" /></svg>
+                </button>
+
+                <button class="profile-btn" id="toggleSidebar-notif">
+                    @*Notification icon svg*@
+                    <svg width="30px" height="30px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Stock_cut" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <desc />
+                    <g>
+                    <path d="M12,27   c0,2.209,1.791,4,4,4s4-1.791,4-4" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+                    <path d="M16,3L16,3   c-4.971,0-9,4.029-9,9v9l-2,3v3h22v-3l-2-3v-9C25,7.029,20.971,3,16,3z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+                    <line fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" x1="7" x2="18" y1="21" y2="21" />
+                    <line fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" x1="20" x2="22" y1="21" y2="21" />
+                    <path d="M16,0L16,0c-1.105,0-2,0.895-2,2v2h4V2C18,0.895,17.105,0,16,0z" />
+                    </g>
+                    </svg>
+                </button>
+
+                <button class="profile-btn" id="toggleSidebar-approval">
+                    @*Approval icon svg*@
+                    <svg width="30px" height="30px" viewBox="0 -960 960 960" fill="#1f1f1f" xmlns="http://www.w3.org/2000/svg"><path d="M160-80v-260q0-24 18-42t42-18h520q24 0 42 18t18 42v260H160Zm60-160h520v-100H220v100Zm260-160L281-680q0-83 58.21-141.5T480-880q82.58 0 140.79 58.5Q679-763 679-680L480-400Zm0-78 139-202q0-58.33-40.56-99.17Q537.88-820 479.94-820t-98.44 40.83Q341-738.33 341-680l139 202Zm0-171Z" /></svg>
+                </button>
+
+                <div class="profile-wrapper">
+                    <span class="user-name">@User.Identity?.Name</span>
+
+                    <div class="profile-container">
+                        <button id="profileBtn" class="profile-btn">
+                            @* Profile icon svg*@
+                            <svg width="30px" height="30px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Stock_cut" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <g>
+                            <circle cx="16" cy="16" fill="none" r="15" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></circle>
+                            <path d="M26,27L26,27   c0-5.523-4.477-10-10-10h0c-5.523,0-10,4.477-10,10v0" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></path>
+                            <circle cx="16" cy="11" fill="none" r="6" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"></circle>
+                        </g>
+                        </svg>
+                        </button>
+
+                        <div id="profilePanel" class="profile-panel">
+                            <div class="panel-header">
+                                <strong>@User.Identity?.Name</strong>
+                            </div>
+                            <div class="panel-actions">
+                                <form asp-controller="Home" asp-action="Logout" asp-area="" method="post" style="display:inline;">
+                                    <button type="submit" class="signout-btn">Sign out</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <aside id="sidebarLeft" class="sidebar left active">
+            @{
+                var currentArea = HttpContextAccessor.HttpContext?.Session.GetString("CurrentArea") ?? string.Empty;
+                if (string.IsNullOrEmpty(currentArea))
+                {
+                    currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+                }
+
+                var modulesJson = HttpContextAccessor.HttpContext?.Session.GetString("ModulesWithScreensJson");
+                List<Module> modules = null!;
+                Module selectedModule = null!;
+
+                if (!string.IsNullOrEmpty(modulesJson))
+                {
+                    try
+                    {
+                        modules = JsonConvert.DeserializeObject<List<Module>>(modulesJson)!;
+                        if (modules != null && !string.IsNullOrEmpty(currentArea) && modules.Any())
+                        {
+                            selectedModule = modules.FirstOrDefault(m => string.Equals(m.Area, currentArea, StringComparison.OrdinalIgnoreCase))!;
+                        }
+                    }
+                    catch
+                    {
+                        selectedModule = new Module { ModuleName = "No Module", Screens = new List<Screen>() };
+                    }
+                }
+                if (selectedModule == null)
+                {
+                    selectedModule = new Module { ModuleName = "No Module", Screens = new List<Screen>() };
+                }
+
+                if (!string.IsNullOrEmpty(selectedModule.Area))
+                {
+                    HttpContextAccessor.HttpContext!.Session.SetString("CurrentArea", selectedModule.Area);
+                    HttpContextAccessor.HttpContext.Session.SetInt32("SelectedModuleID", selectedModule.ModuleID);
+                    HttpContextAccessor.HttpContext.Session.SetString("SelectedModule", JsonConvert.SerializeObject(selectedModule));
+                    HttpContextAccessor.HttpContext.Session.SetString("SelectedModuleName", selectedModule.ModuleName);
+                }
+            }
+            @await Html.PartialAsync("_Sidebar", selectedModule)
+        </aside>
+        <aside id="sidebarRight_Notification" class="sidebar right">
+            <h3>Not Implemented yet</h3>
+        </aside>
+        <aside id="sidebarRight_Approval" class="sidebar right">
+            <h3>Approval</h3>
+            <p>Not Implemented yet</p>
+        </aside>
+        <main role="main" class="content">
+            @RenderBody()
+        </main>
+    </div>
+    <footer>
+    </footer>
+
+    @***** Error Logger UI - Start *****@
+    <div id="errorLogModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
+     width:600px; background:white; border:1px solid #ccc; border-radius:8px; padding:15px;
+     z-index:9999; box-shadow:0 4px 10px rgba(0,0,0,0.3); ">
+        <div id="errorLogHeader" style="font-weight:bold; cursor:move; background:#f3f3f3; padding:5px; border-bottom:1px solid #ccc; cursor:move;">
+            Error Log
+            <button onclick="closeErrorLog()" style="float:right; border-radius:20px;">X</button>
+        </div>
+        <pre id="errorLogContent" style="max-height:400px; overflow:auto; background:#f9f9f9; padding:10px; border:1px solid #ddd;"></pre>
+    </div>
+    @***** Error Logger UI - End *****@
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        //===== Profile button drop down =====
+        document.addEventListener("DOMContentLoaded", () => {
+            const btn = document.getElementById("profileBtn");
+            const panel = document.getElementById("profilePanel");
+
+            if (!btn || !panel) return;
+
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                panel.classList.toggle("active");
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                    panel.classList.remove("active");
+                }
+            });
+        });
+    </script>
+    <script>
+        //========================================= Start of Error logger ========================================================
+        // ===== Draggable Modal =====
+        (function() {
+            let modal = document.getElementById('errorLogModal');
+            let header = document.getElementById('errorLogHeader');
+            let isDragging = false, offsetX, offsetY;
+
+            header.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                offsetX = e.clientX - modal.offsetLeft;
+                offsetY = e.clientY - modal.offsetTop;
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+            });
+
+            function drag(e) {
+                if (!isDragging) return;
+                modal.style.left = e.clientX - offsetX + 'px';
+                modal.style.top = e.clientY - offsetY + 'px';
+                modal.style.transform = 'none'; // disable center transform
+            }
+
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+        })();
+
+        // ===== Show on Shortcut =====
+        let errorLogInterval;
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e') {
+                openErrorLog();
+            }
+        });
+
+        function openErrorLog() {
+            document.getElementById('errorLogModal').style.display = 'block';
+            fetchLog();
+            errorLogInterval = setInterval(fetchLog, 3000); // live update every 3s
+        }
+
+        function fetchLog() {
+            fetch('/GetLatest')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('errorLogContent').textContent = data.join('\n');
+                })
+                .catch(err => {
+                    document.getElementById('errorLogContent').textContent = 'Failed to load error log.';
+                    console.error(err);
+                });
+        }
+
+        function closeErrorLog() {
+            document.getElementById('errorLogModal').style.display = 'none';
+            clearInterval(errorLogInterval);
+        }
+        //========================================= End of Error logger ========================================================
+
+
+        // ===== Side bar panel =====
+        // ===== Left Side bar =====
+        document.getElementById("toggleSidebar").addEventListener("click", function () {
+            const sidebar = document.getElementById("sidebarLeft");
+            const openIcon = document.getElementById("toggle-open-icon");
+            const closeIcon = document.getElementById("toggle-close-icon");
+
+            sidebar.classList.toggle("active");
+
+            if (sidebar.classList.contains("active")) {
+                openIcon.style.display = "inline";
+                closeIcon.style.display = "none";
+            } else {
+                openIcon.style.display = "none";
+                closeIcon.style.display = "inline";
+
+            }
+        });
+
+        // ===== Right Side bar =====
+                document.getElementById("toggleSidebar-approval").addEventListener("click", function () {
+            const sidebarA = document.getElementById("sidebarRight_Approval");
+            const sidebarN = document.getElementById("sidebarRight_Notification");
+
+            if (sidebarA.classList.contains("active")) {
+                sidebarA.classList.remove("active");
+            } else {
+                sidebarA.classList.add("active");
+                sidebarN.classList.remove("active");
+            }
+        });
+
+        document.getElementById("toggleSidebar-notif").addEventListener("click", function () {
+            const sidebarN = document.getElementById("sidebarRight_Notification");
+            const sidebarA = document.getElementById("sidebarRight_Approval");
+
+            if (sidebarN.classList.contains("active")) {
+                sidebarN.classList.remove("active");
+            } else {
+                sidebarN.classList.add("active");
+                sidebarA.classList.remove("active");
+            }
+        });
+        //=====================================================================================================================
+
+    </script>
+    <script>
+        $.ajaxSetup({
+            headers: {
+                "RequestVerificationToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+            }
+        });
+    </script>
+
+
+</body>
+</html>

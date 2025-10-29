@@ -1,0 +1,323 @@
+﻿/* ==================== */
+/* ~/css/admin-menu.css */
+/* ==================== */
+
+h4, h5 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.row {
+    display: flex;
+    gap: 30px;
+}
+
+.col-md-6 {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+    table th, table td {
+        padding: 8px 12px;
+        text-align: left;
+        border: 1px solid #ddd;
+        font-size: 14px;
+    }
+
+    table th {
+        background-color: #f0f0f0;
+    }
+
+/* Buttons */
+.btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-sm {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+    .btn-success:hover {
+        background-color: #1e7e34;
+    }
+
+/* Form inputs */
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.mb-2 {
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+}
+
+/* ===================== */
+/* Treeview Management   */
+/* ===================== */
+.req {
+    color:red;
+}
+.menu-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+    .menu-topbar label {
+        font-weight: 600;
+        width: auto;
+        color: #444;
+    }
+
+.InputSearchbox {
+    max-width: 300px;
+}
+
+.menu-container {
+    display: flex;
+    gap: 20px;
+}
+
+    .menu-container.split-layout {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        gap: 20px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+.menu-left {
+    flex: 0 0 300px;
+    min-width: 50%;
+    max-width: 60%;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.menu-right {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+    .menu-right.active {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
+
+    .menu-right h3,
+    .menu-left h3 {
+        margin-top: 0;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+
+.tree-container {
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #fff;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+/* Actual Treeview */
+.treeview {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+    .treeview li {
+        position: relative;
+        padding: 6px 10px 6px 28px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s ease;
+    }
+
+        .treeview li:hover {
+            background: #f0f7ff;
+            border-radius: 4px;
+        }
+
+        .treeview li.active {
+            background: #e6f0ff;
+            font-weight: 600;
+            border-left: 3px solid #007bff;
+        }
+
+        .treeview li::before {
+            content: "\25B6"; /* ► */
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .treeview li.expanded::before {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+    .treeview ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 18px;
+        display: none;
+    }
+
+    .treeview li.expanded > ul {
+        display: block;
+    }
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.form-item {
+    margin-bottom: 12px;
+}
+
+.custom-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.custom-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .custom-btn.primary {
+        background: #007bff;
+        color: #fff;
+    }
+
+    .custom-btn.secondary {
+        background: #6c757d;
+        color: #fff;
+    }
+
+    .custom-btn.success {
+        background: #28a745;
+        color: #fff;
+    }
+
+    .custom-btn.dark {
+        background: #343a40;
+        color: #fff;
+    }
+
+    .custom-btn.outline {
+        background: transparent;
+        border: 1px solid #ccc;
+    }
+
+    .custom-btn:disabled {
+        background: #ddd !important;
+        color: #999 !important;
+        cursor: not-allowed;
+    }
+
+.menu-left::-webkit-scrollbar,
+.tree-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.menu-left::-webkit-scrollbar-thumb,
+.tree-container::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .menu-container.split-layout {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .menu-left {
+        width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .menu-right {
+        width: 100%;
+    }
+}
+
+
+/* ===== Permission Management ===== */
+.treeview li .permission-checkboxes {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.permission-checkboxes label {
+    font-size: 12px;
+    cursor: pointer;
+}

@@ -1,0 +1,16 @@
+﻿
+Keep models which represents exact as sql table in ERP.Infrastructue.Models folder
+
+keep DTOs in the corresponding area's model folder.
+
+
+Adding new screen:
+*	Add Controller file & Actions codes
+*	through menu creation UI, register the new screen name with its controller and action name.
+*	Assign permission to user.
+*	check if it working.
+
+
+Work in progress:
+* Date	: 
+* Task	: 

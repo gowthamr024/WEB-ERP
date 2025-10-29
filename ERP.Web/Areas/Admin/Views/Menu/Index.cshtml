@@ -1,0 +1,200 @@
+﻿@model ERP.Web.Areas.Admin.Models.ModuleScreenDashboardViewModel
+
+@{
+    ViewData["Title"] = "Module & Screen Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="~/css/admin-menu.css" />
+
+<h2>Module Creation</h2>
+
+<div class="row">
+
+    <div class="col-md-6">
+        <h4>Modules</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Module Name</th>
+                    <th>Default Controller</th>
+                    <th>Default Action</th>
+                   @*  <th>Select</th> *@
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var module in Model.Modules)
+                {
+                    <tr data-module-id="@module.ModuleID" data-module-code="@module.ModuleCode">
+                        <td class="module-name">@module.ModuleName</td>
+                        <td class="module-controller">@module.DefaultControllerName</td>
+                        <td class="module-action">@module.DefaultActionName</td>
+@*                         <td>
+                            <a href="#" class="btn btn-sm btn-primary btn-select-module" data-module-id="@module.ModuleID">Select</a>
+                        </td> *@
+                        <td>
+                            <a href="#" class="btn btn-sm btn-warning btn-edit-module" data-module-id="@module.ModuleID">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <h5>Add Module</h5>
+        <form action="@Url.Action("AddModule", "Menu", new { area = "Admin" })" method="post" id="addModuleForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ModuleID" id="ModuleID" value="" />
+            <div class="mb-2">
+                <input type="text" name="ModuleName" placeholder="Module Name" class="form-control" required />
+            </div>
+            <div class="mb-2">
+                <input type="text" Name="ModuleCode" placeholder="Module Code" class="form-control" required />
+            </div>
+            <div class="mb-2">
+                <input type="text" name="DefaultControllerName" placeholder="Default Controller" class="form-control" required />
+            </div>
+            <div class="mb-2">
+                <input type="text" name="DefaultActionName" placeholder="Default Action" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-success">Add Module</button>
+        </form>
+    </div>
+
+    <!-- Screens Section -->
+@*     <div class="col-md-6" id="screens-container">
+        @await Html.PartialAsync("_ModuleScreensPartial", Model)
+    </div> *@
+</div>
+
+@section Scripts {
+
+
+    <script>
+
+        $(document).on("click", ".btn-select-module", function (e) {
+            e.preventDefault();
+
+            var moduleId = $(this).data("module-id");
+
+            $.ajax({
+                url: '/Admin/Menu/LoadModuleScreens',
+                type: 'GET',
+                data: { moduleId: moduleId },
+                success: function (data) {
+                    $("#screens-container").html(data);
+                },
+                error: function (xhr) {
+                    console.error("Error:", xhr.responseText);
+                    alert("Failed to load screens.");
+                }
+            });
+        });
+
+        $(document).ready(function () {
+
+            // Handle Add/Update form submission
+            $("#addModuleForm").on("submit", function (e) {
+                e.preventDefault();
+
+                var url = "/Admin/Menu/AddModule";
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: $("#addModuleForm").serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            alert("Saved successfully!");
+
+                            // Reset form
+                            $("#addModuleForm")[0].reset();
+                            $("#ModuleID").val("");
+                            $("#btnSave").text("Add Module");
+
+                            // Optionally reload module table
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("An error occurred: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+
+
+        $(document).on("click", ".btn-edit-module", function(e) {
+            e.preventDefault();
+            var row = $(this).closest("tr");
+
+            var moduleId = row.data("module-id");
+            var name = row.find(".module-name").text().trim();
+            var code = row.data("module-code");
+            var controller = row.find(".module-controller").text().trim();
+            var action = row.find(".module-action").text().trim();
+
+            // Fill the form fields
+            $("#addModuleForm input[name='ModuleID']").val(moduleId);
+            $("#addModuleForm input[name='ModuleName']").val(name);
+            $("#addModuleForm input[name='ModuleCode']").val(code);
+            $("#addModuleForm input[name='DefaultControllerName']").val(controller);
+            $("#addModuleForm input[name='DefaultActionName']").val(action);
+
+            // Change button to Update
+            $("#addModuleForm button[type='submit']").text("Update Module");
+        });
+
+                $(document).on("submit", "#addScreenForm", function (e) {
+            e.preventDefault();
+
+            var form = $(this);
+
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: form.serialize(),
+                success: function (response) {
+                    if (response) {
+                        // Replace the entire screens container with the updated partial
+                        $("#screens-container").html(response);
+
+                        // Reset form
+                        form[0].reset();
+
+                        // Reset button text back to Add
+                        form.find("button[type='submit']").text("Add Screen");
+                    } else {
+                        alert("Failed to refresh screens.");
+                    }
+                },
+                error: function (xhr) {
+                    alert("An error occurred: " + xhr.responseText);
+                }
+            });
+        });
+
+        $(document).on("click", ".btn-edit-screen", function(e) {
+            e.preventDefault();
+            var row = $(this).closest("tr");
+
+            var screenId = row.data("screen-id");
+            var name = row.find(".screen-name").text().trim();
+            var code = row.attr("data-screen-code");
+            var controller = row.find(".screen-controller").text().trim();
+            var action = row.find(".screen-action").text().trim();
+            var order = row.find(".screen-order").text().trim();
+
+            // Fill the form fields
+            $("#addScreenForm input[name='ScreenID']").val(screenId);
+            $("#addScreenForm input[name='ScreenName']").val(name);
+            $("#addScreenForm input[name='ScreenCode']").val(code);
+            $("#addScreenForm input[name='ControllerName']").val(controller);
+            $("#addScreenForm input[name='ActionName']").val(action);
+            $("#addScreenForm input[name='MenuOrder']").val(order);
+
+            // Change button to Update
+            $("#addScreenForm button[type='submit']").text("Update Screen");
+        });
+    </script>
+}

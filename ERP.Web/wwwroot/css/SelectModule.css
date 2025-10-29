@@ -1,0 +1,87 @@
+﻿/* General page background */
+body.bg-light {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Title */
+h2.text-center {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+}
+
+/* Card container */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease-in-out;
+    background: #fff;
+    height: 100%;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+/* Card body */
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Module name */
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0d6efd;
+    margin-bottom: 0.25rem;
+}
+
+/* Module ID */
+.text-muted.small {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Button */
+.btn-primary {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.3s ease-in-out;
+    padding: 0.5rem 1rem;
+}
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+    }
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.btn-primary {
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.6rem;
+}
+
+/* Responsive grid */
+@media (max-width: 768px) {
+    .col-md-3 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

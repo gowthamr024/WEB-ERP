@@ -1,0 +1,258 @@
+﻿@* ==================================================================== *@
+@* Area = Admin, Controller = Menu, Action/View = MenuManagement.cshtml *@
+@* ==================================================================== *@
+
+@model ERP.Web.Areas.Admin.Models.ModuleScreenDashboardViewModel
+@{
+    ViewData["Title"] = "Menu Builder";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Tree + DragDrop -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/admin-menu.css" />
+
+<div class="menu-topbar">
+    <label for="moduleSelect">📦 Module:</label>
+    <select id="moduleSelect" class="custom-input InputSearchbox">
+        <option value="">-- Select Module --</option>
+        @foreach (var module in Model.Modules)
+        {
+            <option value="@module.ModuleID">@module.ModuleName</option>
+        }
+    </select>
+</div>
+
+<div class="menu-container split-layout">
+    <!-- Left: Treeview -->
+    <div class="menu-left">
+        <h3>📂 Menu Tree</h3>
+        <div id="screenTree" class="tree-container"></div>
+
+        <div class="action-buttons">
+            <button type="button" id="btnAddMenu" class="custom-btn primary" disabled>➕ Add Menu</button>
+            <button type="button" id="btnAddSubmenu" class="custom-btn secondary" disabled>📂 Add Submenu</button>
+            <button type="button" id="btnAddScreen" class="custom-btn success" disabled>📄 Add Screen</button>
+            <button type="button" id="btnDelete" class="custom-btn danger" disabled>🗑️ Delete</button>
+            <button type="button" id="btnSave" class="custom-btn dark" disabled>💾 Save</button>
+        </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="menu-right">
+        <h3>📝 Menu / Screen Details</h3>
+        <form id="addScreenForm" method="post" action="@Url.Action("AddScreen", "Menu", new { area = "Admin" })">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="ParentScreenID" name="ParentScreenID" />
+            <input type="hidden" id="ScreenID" name="ScreenID" />
+
+            <div class="form-item">
+                <label for="ScreenName">Name<span class="req">*</span></label>
+                <input type="text" name="ScreenName" id="ScreenName" class="custom-input" required disabled />
+            </div>
+
+            <div id="controllerActionFields" class="grid-2">
+                <div class="form-item">
+                    <label for="ControllerName">Controller</label>
+                    <input type="text" name="ControllerName" id="ControllerName" class="custom-input" disabled />
+                </div>
+                <div class="form-item">
+                    <label for="ActionName">Action</label>
+                    <input type="text" name="ActionName" id="ActionName" class="custom-input" disabled />
+                </div>
+            </div>
+
+            @*<div class="form-item">
+                <label for="MenuOrder">Menu Order</label>
+                <input type="number" name="MenuOrder" id="MenuOrder" class="custom-input" value="0" disabled />
+            </div> *@
+
+            <div class="form-actions">
+                @* <button type="submit" class="custom-btn success" disabled id="btnSave">✅ Save</button>*@                
+                @* <button type="reset" class="custom-btn outline" disabled id="btnCancel">❌ Cancel</button> *@
+                <button type="button" class="custom-btn warning" disabled id="btnClear">🧹 Clear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script>
+        $(function () {
+            let tempIdCounter = -1; // negative IDs for new nodes
+            function getTempId() {
+                return (tempIdCounter--).toString();
+            }
+
+            function disableActions() {
+                $(".action-buttons button, #addScreenForm input, #addScreenForm button").prop("disabled", true);
+                $("#ScreenName, #btnClear").prop("disabled", false).val("");
+            }
+            function enableActions() {
+                $(".action-buttons button, #addScreenForm input, #addScreenForm button").prop("disabled", false);
+            }
+
+            disableActions();
+
+            $('#moduleSelect').change(function () {
+                var moduleId = $(this).val();
+                if (!moduleId) {
+                    $('#screenTree').jstree("destroy").empty();
+                    disableActions();
+                    return;
+                }
+
+                disableActions();
+
+                $('#screenTree').jstree("destroy").empty().jstree({
+                    'core': {
+                        'data': {
+                            'url': '/Admin/Menu/GetScreenTree?moduleId=' + moduleId,
+                            'dataType': 'json'
+                        },
+                        'check_callback': true,
+                        'themes': { "stripes": true }
+                    },
+                    "plugins": ["wholerow", "dnd", "types"],
+                    "types": {
+                        "default": { "icon": "📂" },
+                        "screen": { "icon": "📄" }
+                    }
+                }).on("loaded.jstree", function (e, data) {
+                        $("#btnAddMenu").prop("disabled", false);
+                }).on("select_node.jstree", function (e, data) {
+                    var node = data.node;
+                    enableActions();
+
+                    $(".menu-right").addClass("active");
+
+                    $('#ScreenID').val(node.id);
+                    $('#ScreenName').val(node.text || "");
+                    var controller = (node.data && node.data.controller) ? node.data.controller : "";
+                    var action = (node.data && node.data.action) ? node.data.action : "";
+
+                    $('#ControllerName').val(controller);
+                    $('#ActionName').val(action);
+                    $('#ParentScreenID').val(data.node.parent === "#" ? "" : data.node.parent);
+                });
+            });
+
+            $('#btnSave').on("click", function () {
+                var tree = $('#screenTree').jstree(true);
+                var flatData = [];
+
+                function parseNode(node, order) {
+                    var moduleId = $("#moduleSelect").val();
+                    if (!moduleId) { alert("Please select a module first."); return; }
+
+                    let nodeId = parseInt(node.id);
+                    let parentId = node.parent === "#" ? null : parseInt(node.parent);
+
+                    flatData.push({
+                        ScreenID: nodeId,
+                        ScreenName: node.text,
+                        ParentScreenID: parentId != null ? parentId : null,
+                        MenuOrder: order,
+                        ControllerName: node.data?.controller || null,
+                        ActionName: node.data?.action || null,
+                        ModuleID: moduleId
+                    });
+
+                    if (node.children) {
+                        node.children.forEach(function (childId, idx) {
+                            parseNode(tree.get_node(childId), idx + 1);
+                        });
+                    }
+                }
+
+                tree.get_json('#', { flat: true }).forEach(function (node, idx) {
+                    parseNode(node, idx + 1);
+                });
+
+                if (!flatData.length) {
+                    alert("No menu/screen data to save.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("SaveMenuTree", "Menu", new { area = "Admin" })',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(flatData),
+                    success: function (res) {
+                        if (res.success) {
+                            alert("✅ " + res.message);
+                            location.reload();
+                        } else {
+                            alert("⚠️ " + res.message);
+                        }
+                    },
+                    error: function () { alert("❌ Error saving menu tree."); }
+                });
+            });
+
+            $('#btnAddMenu').on("click", function () {
+                var tree = $('#screenTree').jstree(true);
+                var name = $('#ScreenName').val().trim();
+                if (!name) { alert("Please type a menu name first."); return; }
+
+                var newNode = tree.create_node("#", { id: getTempId(), text: name, type: "default",  data: { controller: null, action: null }  });
+                tree.deselect_all();
+                tree.select_node(newNode);
+                $('#ScreenName').val("");
+            });
+
+            $('#btnAddSubmenu').on("click", function () {
+                var tree = $('#screenTree').jstree(true);
+                var sel = tree.get_selected(true)[0];
+                if (!sel) { alert("Select a parent first"); return; }
+                var name = $('#ScreenName').val().trim();
+                if (!name) { alert("Please type a submenu name first."); return; }
+
+                var newNode = tree.create_node(sel, { id: getTempId(), text: name, type: "default", data: { controller: null, action: null } });
+                tree.open_node(sel);
+                tree.deselect_all();
+                tree.select_node(newNode);
+                $('#ScreenName').val("");
+            });
+
+            $('#btnAddScreen').on("click", function () {
+                var tree = $('#screenTree').jstree(true);
+                var sel = tree.get_selected(true)[0];
+                if (!sel) { alert("Select a parent first"); return; }
+
+                var name = $('#ScreenName').val().trim();
+                var ctrl = $('#ControllerName').val().trim();
+                var action = $('#ActionName').val().trim();
+
+                if (!name) { alert("Please type a screen name first."); return; }
+                if (!ctrl || !action) { alert("Controller and Action are required for a screen."); return; }
+
+                var newNode = tree.create_node(sel, { id: getTempId(), text: name, type: "screen", data: { controller: ctrl, action: action }  });
+                tree.open_node(sel);
+                tree.deselect_all();
+                tree.select_node(newNode);
+                $('#ScreenName, #ControllerName, #ActionName').val("");
+            });
+
+            $('#btnDelete').on("click", function () {
+                var tree = $('#screenTree').jstree(true);
+                var sel = tree.get_selected(true)[0];
+                if (!sel) { alert("Select a menu/screen first"); return; }
+
+                if (confirm("⚠️ Are you sure you want to delete '" + sel.text + "'?")) {
+                    tree.delete_node(sel);
+                }
+            });
+
+            $('#btnClear').on("click", function () {
+                $('#addScreenForm')[0].reset();
+                $('#ScreenID').val("");
+                $('#ParentScreenID').val("");
+            });
+        });
+
+    </script>
+}

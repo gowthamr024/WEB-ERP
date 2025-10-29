@@ -1,0 +1,31 @@
+﻿@model ERP.Infrastructure.Models.Entities.Screen
+@{
+    var area = ViewData["Area"]?.ToString() ?? "";
+    var allScreens = ViewData["AllScreens"] as IEnumerable<ERP.Infrastructure.Models.Entities.Screen>;
+    var children = allScreens!
+        .Where(s => s.ParentScreenID == Model.ScreenID && s.IsVisibleInMenu)
+        .OrderBy(s => s.MenuOrder)
+        .ToList();
+}
+
+<li class="menu-item @(children.Any() ? "has-children" : "")">
+    @if (children.Any())
+    {
+        <button class="menu-toggle">
+            @Model.ScreenName <span class="arrow">▶</span>
+        </button>
+        <ul class="submenu">
+            @foreach (var child in children)
+            {
+                @await Html.PartialAsync("_MenuItem", child, new ViewDataDictionary(ViewData) { { "AllScreens", allScreens }, { "Area", area } })
+            }
+        </ul>
+    }
+    else
+    {
+        <a href="@Url.Action(Model.ActionName ?? "Index", Model.ControllerName ?? "Home", new { area = area })">
+            @Model.ScreenName
+        </a>
+    }
+</li>
+

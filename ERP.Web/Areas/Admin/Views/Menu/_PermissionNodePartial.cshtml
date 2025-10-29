@@ -1,0 +1,25 @@
+﻿@model ERP.Infrastructure.Models.DTOs.PermissionDto
+
+<li data-screenid="@Model.ScreenID">
+    <span>@Model.ScreenName</span>
+    <div class="permissions">
+        <label><input type="checkbox" data-perm="V" @(Model.CanView ? "checked" : "") />View</label>
+        <label><input type="checkbox" data-perm="N" @(Model.CanAdd ? "checked" : "") />Add</label>
+        <label><input type="checkbox" data-perm="E" @(Model.CanEdit ? "checked" : "") />Edit</label>
+        <label><input type="checkbox" data-perm="D" @(Model.CanDelete ? "checked" : "") />Delete</label>
+        <label><input type="checkbox" data-perm="P" @(Model.CanPrint ? "checked" : "") />Print</label>
+        <label><input type="checkbox" data-perm="A" @(Model.CanApprove ? "checked" : "") />Approve</label>
+        <label><input type="checkbox" data-perm="C" @(Model.CanCancel ? "checked" : "") />Cancel</label>
+        <label><input type="checkbox" data-perm="R" @(Model.CanReject ? "checked" : "") />Reject</label>
+    </div>
+
+    @if (Model.Children != null && Model.Children.Any())
+    {
+        <ul>
+            @foreach (var child in Model.Children)
+            {
+                @Html.Partial("_PermissionNodePartial", child)
+            }
+        </ul>
+    }
+</li>

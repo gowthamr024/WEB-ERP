@@ -1,0 +1,122 @@
+﻿@* @model ERP.Web.Areas.Admin.Models.ModuleScreenDashboardViewModel
+
+@if (Model.SelectedModuleId.HasValue)
+{
+    <h4>Screens for Module: @Model.SelectedModuleName</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Screen Name</th>
+                <th>Controller</th>
+                <th>Action</th>
+                <th>Menu Order</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var screen in Model.Screens)
+            {
+                <tr>
+                    <td>@screen.ScreenName</td>
+                    <td>@screen.ControllerName</td>
+                    <td>@screen.ActionName</td>
+                    <td>@screen.MenuOrder</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h5>Add Screen</h5>
+    <form asp-area="Admin" asp-controller="Menu" asp-action="AddScreen" method="post">
+        <input type="hidden" name="ModuleID" value="@Model.SelectedModuleId" />
+        <div class="mb-2">
+            <input type="text" name="ScreenName" placeholder="Screen Name" class="form-control" required />
+        </div>
+        <div class="mb-2">
+            <input type="text" name="ScreenCode" placeholder="Screen Code" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <input type="text" name="ControllerName" placeholder="Controller Name" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <input type="text" name="ActionName" placeholder="Action Name" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <input type="number" name="MenuOrder" placeholder="Menu Order" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-success">Add Screen</button>
+    </form>
+}
+else
+{
+    <p>Please select a module to view/add screens.</p>
+}
+ *@
+
+@model ERP.Web.Areas.Admin.Models.ModuleScreenDashboardViewModel
+
+@{
+    ViewData["Title"] = "Module Screens";
+}
+
+<h4>Screens for Module: @Model.SelectedModuleName</h4>
+
+<div id="screensTable">
+    @if (Model.Screens.Any())
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Screen Name</th>
+                    <th>Controller</th>
+                    <th>Action</th>
+                    <th>Menu Order</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var screen in Model.Screens)
+                {
+                    <tr data-screen-id="@screen.ScreenID" data-screen-code="@screen.ScreenCode">
+                        <td class="screen-name">@screen.ScreenName</td>
+                        <td class="screen-controller">@screen.ControllerName</td>
+                        <td class="screen-action">@screen.ActionName</td>
+                        <td class="screen-order">@screen.MenuOrder</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-warning btn-edit-screen" data-screen-id="@screen.ScreenID">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No screens exist for this module yet.</p>
+    }
+</div>
+
+<h5>Add Screen</h5>
+<form id="addScreenForm" action="@Url.Action("AddScreen", "Menu", new { area = "Admin" })" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="ScreenID" value="" />
+    <input type="hidden" name="ModuleID" value="@Model.SelectedModuleId" />
+    <div class="mb-2">
+        <input type="text" name="ScreenName" placeholder="Screen Name" class="form-control" required />
+    </div>
+    <div class="mb-2">
+        <input type="text" name="ScreenCode" placeholder="Screen Code" class="form-control" required />
+    </div>
+    <div class="mb-2">
+        <input type="text" name="ControllerName" placeholder="Controller Name" class="form-control" required />
+    </div>
+    <div class="mb-2">
+        <input type="text" name="ActionName" placeholder="Action Name" class="form-control" required />
+    </div>
+    <div class="mb-2">
+        <input type="number" name="MenuOrder" placeholder="Menu Order" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-success">Add Screen</button>
+</form>
+
+
+

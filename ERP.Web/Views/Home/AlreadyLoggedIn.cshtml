@@ -1,0 +1,97 @@
+﻿@{
+    Layout = null;
+    var username = ViewData["AlreadyLoggedInUser"] as string;
+    var SelectedModuleID = ViewData["SelectedModuleID"] as int?;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Already Logged In</title>
+    <meta name="viewport" content="width=device-width" />
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            padding: 100px;
+            background-color: #f0f0f0;
+        }
+
+        .message-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .username {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .btn {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-logout {
+            background-color: #dc3545;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="message-box">
+        <h2>Welcome back, <span class="username">@username</span> 👋</h2>
+        @* <h2>You are already logged in </h2> *@
+        @* <h2> as <strong>@username</strong>!</h2> *@
+
+        <p>You’re already logged in to your account.</p>
+        <p>What would you like to do?</p>
+
+        <a class="btn" href="@(SelectedModuleID.HasValue? Url.Action("SelectModuleConfirmed", "Home", new { moduleId = SelectedModuleID.Value }): Url.Action("SelectModule", "Home"))">Continue</a>
+        <button class="btn btn-secondary" id="loginAnotherBtn">Login as Another User</button>
+
+    </div>
+
+    <form id="logoutForm" asp-controller="Home" asp-action="Logout" method="post" style="display: none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script>
+        // document.getElementById("loginAnotherBtn").addEventListener("click", function () {
+        //     const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        //     fetch("/Home/Logout", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/x-www-form-urlencoded",
+        //             "RequestVerificationToken": token,
+        //             "X-Requested-With": "XMLHttpRequest"
+        //         },
+        //         body: "__RequestVerificationToken=" + encodeURIComponent(token)
+        //     })
+        //     .then(response => {
+        //         if (response.ok) {
+        //             window.location.href = "/Home/Login";
+        //         } else {
+        //             alert("Logout failed.");
+        //         }
+        //     });
+        // });
+        document.getElementById("loginAnotherBtn").addEventListener("click", function () {
+            document.getElementById("logoutForm").submit();
+        });
+    </script>
+</body>
+</html>

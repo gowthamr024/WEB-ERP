@@ -1,0 +1,121 @@
+﻿@model ERP.Web.Models.LoginViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8" />
+    <title>Login</title>
+    @* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" /> *@
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .ContentMain {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .loginviewcard {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+        }
+
+        .cardrows {
+            margin-bottom: 15px;
+        }
+
+            .cardrows label, .cardrows input {
+                display: block;
+                width: 100%;
+            }
+
+            .cardrows input {
+                padding: 8px;
+                margin-top: 5px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+
+        button, input[type="submit"] {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            button:hover, input[type="submit"]:hover {
+                background-color: #0056b3;
+            }
+    </style>
+</head>
+<body class="ContentMain">
+    <div id="loginform">
+        <div>
+            <label ID="Welcome" Text="Welcome "></label>
+        </div>
+        <div class="loginviewcard">
+
+            <form asp-controller="Home" asp-action="UserLogin" method="post">
+                @Html.AntiForgeryToken()
+                <div>
+                    <label ID="LoginInfoText"> Enter your credentials to log in into application </label>
+                </div>
+
+                <div>
+                    <div asp-validation-summary="All" class="text-danger" style="margin-bottom: 10px;"></div>
+
+                </div>
+
+                <div class="cardrows">
+                    <br /> <br />
+                    <label asp-for="Username">Username :</label>
+                    <input asp-for="Username" class="form-control" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+
+                </div>
+
+                <div class="cardrows">
+                    <label asp-for="Password">Password :</label>
+                    <input asp-for="Password" type="password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <button type="reset">Cancel</button>
+            <script>
+                document.querySelector("form").addEventListener("submit", function () {
+                  console.log("Form submit captured by JS.");
+                });
+            </script>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

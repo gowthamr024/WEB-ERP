@@ -1,0 +1,183 @@
+﻿@using ERP.Web.Areas.Admin.Models
+@model AssignPermissionViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Assign Permissions</h2>
+
+<div>
+    <label>Select User:</label>
+    <select id="ddlUsers" class="form-control">
+        <option value="">-- Select --</option>
+        @foreach (var user in Model.Users)
+        {
+            <option value="@user.UserId">@user.Username</option>
+        }
+    </select>
+</div>
+
+<hr />
+
+<form id="permissionForm">
+    @Html.AntiForgeryToken()
+
+    <div id="permissions-container">
+        <!-- permissions grid loads via AJAX -->
+    </div>
+
+    <button id="btnSave" type="button" class="btn btn-primary mt-3" style="display:none;">
+        Save Permissions
+    </button>
+</form>
+
+@* @section Scripts {
+    <script>
+        // Load permissions grid when user changes
+        $("#ddlUsers").change(function () {
+            var userId = $(this).val();
+            if (userId) {
+                $("#permissions-container").html("<div class='text-muted'>Loading...</div>");
+                $.get('@Url.Action("LoadUserPermissions", "Menu", new { area = "Admin" })',
+                    { userId: userId },
+                    function (html) {
+                        $("#permissions-container").html(html);
+                        $("#btnSave").show();
+                    });
+            } else {
+                $("#permissions-container").html("");
+                $("#btnSave").hide();
+            }
+        });
+
+        // Save permissions
+        $("#btnSave").click(function () {
+            var userId = $("#ddlUsers").val();
+            if (!userId) {
+                alert("Please select a user.");
+                return;
+            }
+
+            var permissions = [];
+            $(".perm-row").each(function () {
+                var row = $(this);
+                var screenId = row.data("screenid");
+                var permObj = { ScreenID: screenId };
+
+                row.find(".perm-checkbox").each(function () {
+                    var type = $(this).data("type"); // e.g. "View", "Add"
+                    permObj["Can" + type] = $(this).is(":checked");
+                });
+
+                permissions.push(permObj);
+            });
+
+            $.ajax({
+                url: "@Url.Action("AssignPermissions", "Menu", new { area = "Admin" })",
+                type: "POST",
+                contentType: "application/json",
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                data: JSON.stringify({ UserId: userId, Permissions: permissions }),
+                success: function (res) {
+                    alert(res.message);
+                },
+                error: function () {
+                    alert("Something went wrong while saving permissions.");
+                }
+            });
+        });
+    </script>
+} *@
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+        // Load permission tree
+            $("#ddlUsers").change(function () {
+                       var userId = $(this).val();
+                       if (userId) {
+                           $("#permissions-container").html("<div class='text-muted'>Loading...</div>");
+
+                           $.ajax({
+                               url: '@Url.Action("LoadUserPermissions", "Menu", new { area = "Admin" })',
+                               type: "GET",
+                               data: { userId: userId }
+                           })
+                           .done(function (html) {
+                               $("#permissions-container").html(html);
+                               $("#btnSave").show();
+                           })
+                           .fail(function (xhr, status, error) {
+                                console.error("AJAX error:", {
+                                    status: xhr.status,
+                                    error: error,
+                                    response: xhr.responseText
+                                });
+                                $("#permissions-container").html(
+                                    `<div class="alert alert-danger">
+                                        Failed to load permissions: ${xhr.status} ${error}
+                                        <br/><small>${xhr.responseText}</small>
+                                     </div>`
+                                );
+                                $("#btnSave").hide();
+                            })
+                           .always(function () {
+                               // remove "Loading..." message if still present
+                               if ($("#permissions-container").text().includes("Loading...")) {
+                                   $("#permissions-container").html("");
+                               }
+                           });
+                       } else {
+                           $("#permissions-container").html("");
+                           $("#btnSave").hide();
+                       }
+                   });
+            // Save permissions
+            $("#btnSave").click(function () {
+                var userId = $("#ddlUsers").val();
+                if (!userId) {
+                    alert("Please select a user.");
+                    return;
+                }
+
+                var permissions = [];
+                $(".perm-row").each(function () {
+                    var row = $(this);
+                    var screenId = row.data("screenid");
+                    var permObj = { ScreenID: screenId };
+
+                    row.find(".perm-checkbox").each(function () {
+                        var type = $(this).data("type"); // e.g. "View"
+                        permObj["Can" + type] = $(this).is(":checked");
+                    });
+
+                    permissions.push(permObj);
+                });
+
+                $.ajax({
+                    url: "@Url.Action("AssignPermissions", "Menu", new { area = "Admin" })",
+                    type: "POST",
+                    contentType: "application/json",
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    data: JSON.stringify({ UserId: userId, Permissions: permissions }),
+                    success: function (res) {
+                        alert(res.message);
+                    },
+                    error: function () {
+                        alert("Something went wrong while saving permissions.");
+                    }
+                });
+            });
+
+            window.onerror = function (msg, url, line, col, error) {
+                console.error("Unhandled error:", msg, " at ", url, ":", line);
+                alert("Unexpected error: " + msg);
+            };
+        });
+    </script>
+}

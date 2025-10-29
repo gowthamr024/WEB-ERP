@@ -1,0 +1,44 @@
+﻿@using ERP.Web.Areas.Admin.Models
+@model List<ScreenPermissionDto>
+
+<ul class="list-group">
+    @foreach (var screen in Model)
+    {
+        if (screen.Children.Any())
+        {
+            <li class="list-group-item">
+                <span class="menu-toggle" data-target="children-@screen.ScreenID">▶</span>
+                <strong>@screen.ScreenName</strong>
+                <ul id="children-@screen.ScreenID" class="list-group ms-3 d-none">
+                    @Html.Partial("_permissionTree", screen.Children)
+                </ul>
+            </li>
+        }
+        else
+        {
+            <li class="list-group-item perm-row" data-screenid="@screen.ScreenID">
+                <span>@screen.ScreenName</span>
+                <div class="float-end">
+                    <input type="checkbox" class="perm-checkbox" data-type="View" @(screen.CanView ? "checked" : "") /> V
+                    <input type="checkbox" class="perm-checkbox" data-type="Add" @(screen.CanAdd ? "checked" : "") /> A
+                    <input type="checkbox" class="perm-checkbox" data-type="Edit" @(screen.CanEdit ? "checked" : "") /> E
+                    <input type="checkbox" class="perm-checkbox" data-type="Delete" @(screen.CanDelete ? "checked" : "") /> D
+                    <input type="checkbox" class="perm-checkbox" data-type="Print" @(screen.CanPrint ? "checked" : "") /> P
+                    <input type="checkbox" class="perm-checkbox" data-type="Approve" @(screen.CanApprove ? "checked" : "") /> Ap
+                    <input type="checkbox" class="perm-checkbox" data-type="Reject" @(screen.CanReject ? "checked" : "") /> R
+                    <input type="checkbox" class="perm-checkbox" data-type="Cancel" @(screen.CanCancel ? "checked" : "") /> C
+                </div>
+            </li>
+        }
+    }
+</ul>
+
+<script>
+    // Expand/Collapse toggle
+    $(".menu-toggle").off("click").on("click", function () {
+        var target = $(this).data("target");
+        $("#" + target).toggleClass("d-none");
+
+        $(this).text($(this).text() === "▶" ? "▼" : "▶");
+    });
+</script>

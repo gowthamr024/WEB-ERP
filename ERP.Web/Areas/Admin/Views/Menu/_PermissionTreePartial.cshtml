@@ -1,0 +1,8 @@
+﻿@model ERP.Web.Areas.Admin.Models.AssignPermissionViewModel
+
+<ul class="permission-tree">
+    @foreach (var screen in Model.Permissions)
+    {
+        @Html.Partial("_PermissionNodePartial", screen)
+    }
+</ul>

@@ -1,0 +1,67 @@
+﻿@model List<ERP.Infrastructure.Models.Entities.Module>
+
+@* <h2>Select a Module</h2>
+<form method="post" action="/Home/SelectModuleConfirmed">
+    <select name="moduleId" onchange="updateControllerName(this)">
+        @foreach (var module in Model)
+        {
+            <option value="@module.ModuleID" data-controller="@module.DefaultControllerName">
+                @module.ModuleName
+            </option>
+        }
+    </select>
+    <input type="hidden" name="controllerName" id="controllerName" value="@Model[0].DefaultControllerName" />
+    <button type="submit">Go</button>
+</form>
+
+<script>
+    function updateControllerName(select) {
+        var controllerName = select.options[select.selectedIndex].getAttribute('data-controller');
+        document.getElementById('controllerName').value = controllerName;
+    }
+</script> *@
+
+
+@{
+    ViewData["Title"] = "Select Module";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Select Module</title>
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/SelectModule.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Please Select a Module</h2>
+
+        <div class="row justify-content-center">
+            @foreach (var module in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center  d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title  text-primary">@module.ModuleName</h5>
+                                <p class="text-muted small">(@module.ModuleID)</p>
+                            </div><div class="mt-3">
+                                <a asp-action="SelectModuleConfirmed"
+                                   asp-controller="Home"
+                                   asp-route-moduleId="@module.ModuleID"
+                                   class="btn btn-primary w-100">
+                                    Open
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

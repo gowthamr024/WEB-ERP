@@ -1,0 +1,178 @@
+﻿@*~/_Sidebar.cshtml*@
+
+@using Microsoft.AspNetCore.Html
+@using Newtonsoft.Json
+@using ERP.Infrastructure.Models.Entities
+@model Module
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var _Area = Model.Area;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var allScreens = Model.Screens ?? Enumerable.Empty<ERP.Infrastructure.Models.Entities.Screen>();
+}
+
+<div class="app-sidebar-content">
+    <div class="sidebar-header">
+        <h2 class="logo">@Model.ModuleName</h2>
+    </div>
+
+    <ul class="sidebar-menu">
+        @if (allScreens != null && allScreens.Any())
+        {
+            @RenderMenuItems(allScreens, null, _Area, currentController, currentAction)
+        }
+        else
+        {
+            <li><span>No screens assigned for this area</span></li>
+        }
+    </ul>
+</div>
+
+@functions {
+    private IHtmlContent RenderMenuItems(IEnumerable<Screen> allScreens, int? parentId, string _area, string currentController, string currentAction)
+    {
+        var items = allScreens
+            .Where(s => s.ParentScreenID == parentId && s.IsVisibleInMenu)
+            .OrderBy(s => s.MenuOrder)
+            .ToList();
+
+        if (!items.Any()) return HtmlString.Empty;
+
+        var ul = new TagBuilder("ul");
+        ul.AddCssClass(parentId == null ? "menu-root" : "submenu");
+
+        foreach (var screen in items)
+        {
+            var li = new TagBuilder("li");
+            li.AddCssClass("menu-item");
+
+            bool isActive = (currentController == screen.ControllerName && (screen.ActionName ?? "Index") == currentAction);
+            bool hasChildren = allScreens.Any(s => s.ParentScreenID == screen.ScreenID);
+
+            if (isActive) li.AddCssClass("active");
+
+            if (hasChildren)
+            {
+                var btn = new TagBuilder("button");
+                btn.AddCssClass("menu-toggle");
+                btn.InnerHtml.Append(screen.ScreenName);
+
+                var arrow = new TagBuilder("span");
+                arrow.AddCssClass("arrow");
+                arrow.InnerHtml.Append("▶");
+                btn.InnerHtml.AppendHtml(arrow);
+
+                li.InnerHtml.AppendHtml(btn);
+
+                var childUl = RenderMenuItems(allScreens, screen.ScreenID, _area, currentController, currentAction);
+                li.InnerHtml.AppendHtml(childUl);
+
+                bool childHasActive = allScreens.Any(s => s.ParentScreenID == screen.ScreenID && (s.ControllerName == currentController && (s.ActionName ?? "Index") == currentAction));
+
+                if (childHasActive)
+                {
+                    li.AddCssClass("open");
+                }
+            }
+            else
+            {
+                var a = new TagBuilder("a");
+                a.Attributes["href"] = $"/{_area}/{screen.ControllerName}/{screen.ActionName ?? "Index"}";
+                a.InnerHtml.Append(screen.ScreenName);
+                li.InnerHtml.AppendHtml(a);
+            }
+
+            ul.InnerHtml.AppendHtml(li);
+        }
+
+        return ul;
+    }
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".menu-toggle").forEach(btn => {
+            btn.addEventListener("click", () => {
+                btn.parentElement.classList.toggle("open");
+            });
+        });
+    });
+</script>
+
+
+<style>
+    /* Sidebar wrapper */
+    .app-sidebar-content {
+        background-color: #2c3e50;
+        color: #d1d5db;
+        overflow-y: auto;
+    }
+
+    /* Header */
+    .sidebar-header {
+        padding: 15px;
+        background: #111827;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    /* Menu */
+    .sidebar-menu, .submenu {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .menu-item {
+        border-bottom: 1px solid #374151;
+    }
+
+        .menu-toggle, .menu-item > a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #d1d5db;
+            text-align: left;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+            .menu-toggle:hover, .menu-item > a:hover {
+                background: #374151;
+                color: #fff;
+            }
+
+    /* Submenu */
+    .submenu {
+        padding-left: 15px;
+        display: none;
+        background: #111827;
+    }
+
+    .menu-item.open > .submenu {
+        display: block;
+    }
+
+    /* Active item */
+    .menu-item.active > a {
+        background: #2563eb !important;
+        color: #fff !important;
+    }
+
+    /* Arrow */
+    .arrow {
+        margin-left: auto;
+        transition: transform 0.2s;
+    }
+
+    .menu-item.open > .menu-toggle .arrow {
+        transform: rotate(90deg);
+    }
+</style>

@@ -1,0 +1,66 @@
+﻿@using ERP.Web.Areas.Admin.Models
+@model AssignPermissionViewModel
+
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Screen</th>
+            <th>
+                View <br />
+                <input type="checkbox" class="select-all" data-type="View" />
+            </th>
+            <th>
+                Add <br />
+                <input type="checkbox" class="select-all" data-type="Add" />
+            </th>
+            <th>
+                Edit <br />
+                <input type="checkbox" class="select-all" data-type="Edit" />
+            </th>
+            <th>
+                Delete <br />
+                <input type="checkbox" class="select-all" data-type="Delete" />
+            </th>
+            <th>
+                Print <br />
+                <input type="checkbox" class="select-all" data-type="Print" />
+            </th>
+            <th>
+                Approve <br />
+                <input type="checkbox" class="select-all" data-type="Approve" />
+            </th>
+            <th>
+                Reject <br />
+                <input type="checkbox" class="select-all" data-type="Reject" />
+            </th>
+            <th>
+                Cancel <br />
+                <input type="checkbox" class="select-all" data-type="Cancel" />
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model.Permissions)
+        {
+            <tr class="perm-row" data-screenid="@p.ScreenID">
+                <td>@p.ScreenName</td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="View" @(p.CanView ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Add" @(p.CanAdd ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Edit" @(p.CanEdit ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Delete" @(p.CanDelete ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Print" @(p.CanPrint ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Approve" @(p.CanApprove ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Reject" @(p.CanReject ? "checked" : "") /></td>
+                <td><input type="checkbox" class="perm-checkbox" data-type="Cancel" @(p.CanCancel ? "checked" : "") /></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    // Bulk select/deselect by column
+    $(".select-all").on("change", function () {
+        var type = $(this).data("type");
+        $(".perm-checkbox[data-type='" + type + "']").prop("checked", $(this).is(":checked"));
+    });
+</script>
